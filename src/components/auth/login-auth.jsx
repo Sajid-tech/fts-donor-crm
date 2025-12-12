@@ -1,27 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Eye, EyeOff, Lock, Mail, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import BASE_URL from '@/config/base-url';
 import Cookies from 'js-cookie';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const LoginAuth = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-    const [loadingMessage, setLoadingMessage] = useState("");
+  const [loadingMessage, setLoadingMessage] = useState('');
   const emailInputRef = useRef(null);
   const navigate = useNavigate();
-const loadingMessages = [
+  
+  const loadingMessages = [
     "Setting things up for you...",
     "Checking your credentials...",
     "Preparing your dashboard...",
     "Almost there...",
   ];
-
- 
 
   useEffect(() => {
     let messageIndex = 0;
@@ -39,6 +38,7 @@ const loadingMessages = [
       if (intervalId) clearInterval(intervalId);
     };
   }, [isLoading]);
+
   // Auto-focus on email input
   useEffect(() => {
     if (emailInputRef.current) {
@@ -48,215 +48,193 @@ const loadingMessages = [
 
   // Handle Enter key press
   const handleKeyPress = (event) => {
-    if (event.key === "Enter" && !isLoading) {
-      handleSubmit(event);
+    if (event.key === 'Enter' && !isLoading) {
+      handleLogin(event);
     }
   };
 
-  const handleSubmit = async (event) => {
+  const handleLogin = async (event) => {
     event.preventDefault();
 
     // Validate inputs
     if (!email.trim() || !password.trim()) {
-      toast.error("Please enter both username and password.");
+      toast.error('Please enter both username and password.');
       return;
     }
 
     setIsLoading(true);
 
     const formData = new FormData();
-    formData.append("username", email);
-    formData.append("password", password);
+    formData.append('username', email);
+    formData.append('password', password);
 
     try {
       const res = await axios.post(`${BASE_URL}/api/loginWithDonorId`, formData);
 
       if (res.data.code === 200) {
         if (!res.data.UserInfo || !res.data.UserInfo.token) {
-          toast.error("Login Failed: No token received.");
+          toast.error('Login Failed: No token received.');
           setIsLoading(false);
           return;
         }
 
         const { UserInfo, version, year } = res.data;
-        const isProduction = window.location.protocol === "https:";
+        const isProduction = window.location.protocol === 'https:';
 
         const cookieOptions = {
           expires: 7,
           secure: isProduction,
-          sameSite: "Strict",
-          path: "/",
+          sameSite: 'Strict',
+          path: '/',
         };
 
         // Set all cookies
-        Cookies.set("token", UserInfo.token, cookieOptions);
-        Cookies.set("id", UserInfo.user.id, cookieOptions);
-        Cookies.set("name", UserInfo.user.indicomp_full_name, cookieOptions);
-        Cookies.set("chapter_id", UserInfo.user.chapter_id, cookieOptions);
-        Cookies.set("user_name", UserInfo.user.indicomp_fts_id, cookieOptions);
-        Cookies.set("email", UserInfo.user.indicomp_email, cookieOptions);
-        Cookies.set("token-expire-time", UserInfo?.token_expires_at, cookieOptions);
-        Cookies.set("ver_con", version?.version_panel, cookieOptions);
-        Cookies.set("currentYear", year?.current_year, cookieOptions);
+        Cookies.set('token', UserInfo.token, cookieOptions);
+        Cookies.set('id', UserInfo.user.id, cookieOptions);
+        Cookies.set('name', UserInfo.user.indicomp_full_name, cookieOptions);
+        Cookies.set('chapter_id', UserInfo.user.chapter_id, cookieOptions);
+        Cookies.set('user_name', UserInfo.user.indicomp_fts_id, cookieOptions);
+        Cookies.set('email', UserInfo.user.indicomp_email, cookieOptions);
+        Cookies.set('token-expire-time', UserInfo?.token_expires_at, cookieOptions);
+        Cookies.set('ver_con', version?.version_panel, cookieOptions);
+        Cookies.set('currentYear', year?.current_year, cookieOptions);
 
-        const token = Cookies.get("token");
-        const tokenExpireTime = Cookies.get("token-expire-time");
+        const token = Cookies.get('token');
+        const tokenExpireTime = Cookies.get('token-expire-time');
         if (!token && !tokenExpireTime) {
-          throw new Error("Cookies not set properly");
+          throw new Error('Cookies not set properly');
         }
 
-        navigate("/home", { replace: true });
+        navigate('/home', { replace: true });
       } else {
-        toast.error(res.data.message || "Login Failed: Unexpected response.");
+        toast.error(res.data.message || 'Login Failed: Unexpected response.');
         setIsLoading(false);
       }
     } catch (error) {
-      console.error("❌ Login Error:", error.response?.data?.message || error.message);
-      toast.error(error.response?.data?.message || "Login failed. Please check your credentials.");
+      console.error('❌ Login Error:', error.response?.data?.message || error.message);
+      toast.error(error.response?.data?.message || 'Login failed. Please check your credentials.');
       setIsLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-200 via-gray-100 to-amber-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        {/* Login Card */}
-        <div className="bg-gradient-to-br from-gray-100 to-amber-50 rounded-md shadow-lg p-6">
-          {/* Header */}
-          <div className="text-center mb-6">
-            <div className="mb-4">
-              <div className="w-12 h-12 bg-gray-900 rounded-md flex items-center justify-center mx-auto">
-                <Lock className="w-6 h-6 text-yellow-400" />
-              </div>
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">
-             
-              
-              FTS Champ</h1>
-            <p className="text-gray-600 text-sm">Donor Management System</p>
-          </div>
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
-          {/* Login Form */}
-          <div className="space-y-4">
-            {/* Email Input */}
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-1">
-                Donor Fts ID
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="w-4 h-4 text-gray-500" />
-                </div>
+  return (
+    <>
+     
+      <div className="min-h-screen flex">
+        {/* Left Section - Form */}
+        <div className="w-full lg:w-1/2 bg-gray-200 flex items-center justify-center px-8 py-12">
+          <div className="max-w-md w-full">
+            {/* Heading */}
+            <h1 className="text-4xl md:text-5xl font-bold text-blue-900 leading-tight mb-6 canela-font">
+              Together let's achieve something incredible
+            </h1>
+            
+            {/* Description */}
+            <p className="text-gray-700 text-base mb-4 leading-relaxed">
+              This secure area provides Ekal supporters with information on school allocation against their donations, and online transactions made on the ekal.org website.
+            </p>
+            
+            <p className="text-gray-700 text-base mb-8">
+              If you are an active Ekal donor, but do not have access to MyEkal as yet, please{' '}
+              <Link to="/forgot-password" className="text-orange-500 underline hover:text-orange-600">
+                click here
+              </Link>{' '}
+              to set your password.
+            </p>
+
+            <div className="border-t border-gray-300 my-8"></div>
+
+            {/* Login Form */}
+            <form onSubmit={handleLogin}>
+              <div className="mb-6">
+                <label htmlFor="email" className="block text-blue-900 font-semibold mb-2 text-base">
+                  Donor ID or Email Address
+                </label>
                 <input
                   ref={emailInputRef}
                   type="text"
+                  id="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Enter your donor Fts ID"
+                  placeholder="Enter email address"
                   disabled={isLoading}
-                  className="w-full pl-10 pr-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-transparent text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-3 border border-gray-300 rounded bg-white text-gray-700 placeholder-gray-400 focus:outline-none  focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
-            </div>
 
-            {/* Password Input */}
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-1">
-                Password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="w-4 h-4 text-gray-500" />
+              <div className="mb-6">
+                <label htmlFor="password" className="block text-blue-900 font-semibold mb-2 text-base">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    id="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="*******"
+                    disabled={isLoading}
+                    className="w-full px-4 py-3 pr-10 border border-gray-300 rounded bg-white text-gray-700 placeholder-gray-400 focus:outline-none focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    disabled={isLoading}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 transition-colors disabled:cursor-not-allowed"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
                 </div>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Enter your password"
-                  disabled={isLoading}
-                  className="w-full pl-10 pr-10 py-2 bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-transparent text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                />
+              </div>
+
+              <div className="flex items-center justify-between">
                 <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  type="submit"
                   disabled={isLoading}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 transition-colors disabled:cursor-not-allowed"
+                  className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-8 rounded transition duration-200 uppercase text-sm tracking-wide flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed min-w-[120px]"
                 >
-                  {showPassword ? (
-                    <EyeOff className="w-4 h-4" />
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span className="text-xs">{loadingMessage}</span>
+                    </>
                   ) : (
-                    <Eye className="w-4 h-4" />
+                    'Login'
                   )}
                 </button>
-              </div>
-            </div>
-
-            {/* Remember & Forgot Password */}
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 text-gray-900 bg-white border-gray-300 rounded focus:ring-gray-900 focus:ring-1"
+                <button
+                  type="button"
+                  onClick={() => navigate('/forgot-password')}
+                  className="text-gray-600 hover:text-gray-800 underline text-base disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isLoading}
-                />
-                <span className="text-gray-600">Remember me</span>
-              </label>
-              <button
-                type="button"
-                onClick={()=>navigate('/forgot-password')}
-                className="text-gray-900 hover:text-gray-700 transition-colors"
-                disabled={isLoading}
-              >
-                Forgot password?
-              </button>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              onClick={handleSubmit}
-              disabled={isLoading}
-              className="w-full py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>{loadingMessage}</span>
-                </>
-              ) : (
-                <span>Sign In</span>
-              )}
-            </button>
-          </div>
-
-          {/* Divider */}
-          <div className="my-4">
-            <div className="h-px bg-gray-300"></div>
-          </div>
-
-          {/* Footer */}
-          <div className="text-center">
-            <p className="text-xs text-gray-500">
-              By signing in, you agree to our{' '}
-              <button className="text-gray-900 hover:text-gray-700 transition-colors">
-                Terms
-              </button>{' '}
-              and{' '}
-              <button className="text-gray-900 hover:text-gray-700 transition-colors">
-                Privacy
-              </button>
-            </p>
+                >
+                  Forgot password?
+                </button>
+              </div>
+            </form>
           </div>
         </div>
 
-        {/* Decorative Elements */}
-        <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
-          <div className="absolute -top-20 -right-20 w-40 h-40 bg-yellow-400/10 rounded-full blur-xl"></div>
-          <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-gray-900/10 rounded-full blur-xl"></div>
+        {/* Right Section - Image */}
+        <div className="hidden lg:block lg:w-1/2 relative">
+          <img
+            src="https://www.ekal.org/assets/images/login-img2.jpg"
+            alt="Children learning"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

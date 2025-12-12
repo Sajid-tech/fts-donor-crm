@@ -1,13 +1,14 @@
 
 
+@import url('https://fonts.cdnfonts.com/css/canela-deck');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 
-/* Add to your global.css or component */
-/* Custom scrollbar styling */
-.scrollbar-custom {
+
+ .scrollbar-custom {
     scrollbar-width: thin;
     scrollbar-color: #52520a #f6f6f3;
   }
@@ -41,4 +42,8 @@
   
   .animate-shine {
     animation: shine 2s ease-in-out infinite;
+  }
+
+  .canela-font {
+    font-family: 'Canela Deck', serif;
   }
